@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}{{ site.title }}{% endblock %} — {{ site.title }}</title>
+<meta name="description" content="{% block description %}{{ site.description }}{% endblock %}">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2218%22 fill=%22%230F1117%22/><text x=%2250%22 y=%2266%22 font-family=%22monospace%22 font-size=%2254%22 fill=%22%23E8A33D%22 text-anchor=%22middle%22>&gt;_</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ base_url }}static/css/style.css">
+<link rel="stylesheet" href="{{ base_url }}static/css/pygments.css">
+</head>
+<body>
+
+<div class="skip"><a href="#main">Saltar al contenido</a></div>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="{{ base_url }}index.html">
+      <span class="brand-glyph">&gt;_</span>
+      <span class="brand-text">{{ site.title }}</span>
+    </a>
+    <nav class="site-nav" aria-label="Navegación principal">
+      <a href="{{ base_url }}index.html">inicio</a>
+      <a href="{{ base_url }}about.html">acerca</a>
+      <a href="{{ site.contact_url }}" target="_blank" rel="noopener">contacto</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+{% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <p class="footer-line">
+      <span class="prompt">root@{{ site.handle }}:~$</span> echo "gracias por leer"
+    </p>
+    <p class="footer-meta">
+      {{ site.title }} · construido con Python + Jinja2 · © {{ site.year }} {{ site.author }}
+    </p>
+  </div>
+</footer>
+
+<script src="{{ base_url }}static/js/main.js"></script>
+</body>
+</html>

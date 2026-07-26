@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTB Forest: de enumeración LDAP anónima a Domain Admin — 0xBitácora</title>
+<meta name="description" content="Writeup de la máquina Forest de HackTheBox: enumeración anónima de LDAP, abuso de un grupo delegado y escalada final vía DCSync.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2218%22 fill=%22%230F1117%22/><text x=%2250%22 y=%2266%22 font-family=%22monospace%22 font-size=%2254%22 fill=%22%23E8A33D%22 text-anchor=%22middle%22>&gt;_</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../static/css/style.css">
+<link rel="stylesheet" href="../static/css/pygments.css">
+</head>
+<body>
+
+<div class="skip"><a href="#main">Saltar al contenido</a></div>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../index.html">
+      <span class="brand-glyph">&gt;_</span>
+      <span class="brand-text">0xBitácora</span>
+    </a>
+    <nav class="site-nav" aria-label="Navegación principal">
+      <a href="../index.html">inicio</a>
+      <a href="../about.html">acerca</a>
+      <a href="https://github.com/" target="_blank" rel="noopener">contacto</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+
+<article class="post wrap">
+
+  <a class="back-link" href="../index.html">&larr; volver a la bitácora</a>
+
+  <header class="post-header">
+    <span class="tag tag-writeup">writeup</span>
+    <h1 class="post-title">HTB Forest: de enumeración LDAP anónima a Domain Admin</h1>
+    <p class="post-dek">Writeup de la máquina Forest de HackTheBox: enumeración anónima de LDAP, abuso de un grupo delegado y escalada final vía DCSync.</p>
+
+    <dl class="meta-block">
+      <div><dt>fecha</dt><dd>2026-06-15</dd></div>
+      <div><dt>autor</dt><dd>John</dd></div>
+      <div><dt>lectura</dt><dd>2 min</dd></div>
+      <div><dt>tags</dt><dd>#htb #active-directory #ldap #ctf</dd></div>
+    </dl>
+  </header>
+
+  
+  <details class="toc">
+    <summary>Índice</summary>
+    <div class="toc">
+<ul>
+<li><a href="#contexto">Contexto</a></li>
+<li><a href="#desarrollo">Desarrollo</a><ul>
+<li><a href="#reconocimiento-inicial">Reconocimiento inicial</a></li>
+<li><a href="#enumeracion-anonima-de-ldap">Enumeración anónima de LDAP</a></li>
+<li><a href="#del-usuario-inicial-a-un-grupo-con-delegacion">Del usuario inicial a un grupo con delegación</a></li>
+<li><a href="#escalada-final-dcsync">Escalada final: DCSync</a></li>
+</ul>
+</li>
+<li><a href="#conclusion">Conclusión</a></li>
+</ul>
+</div>
+
+  </details>
+  
+
+  <div class="post-body">
+    <h2 id="contexto"><a class="toclink" href="#contexto">Contexto</a></h2>
+<p><code>Forest</code> es una máquina educativa de Active Directory en HackTheBox, pensada
+para practicar el flujo típico de reconocimiento y escalada en un dominio de
+Windows mal configurado. Todo lo aquí descrito ocurre dentro del entorno
+autorizado de HTB.</p>
+<h2 id="desarrollo"><a class="toclink" href="#desarrollo">Desarrollo</a></h2>
+<h3 id="reconocimiento-inicial"><a class="toclink" href="#reconocimiento-inicial">Reconocimiento inicial</a></h3>
+<div class="codehilite"><pre><span></span><code>nmap<span class="w"> </span>-p-<span class="w"> </span>--min-rate<span class="w"> </span><span class="m">5000</span><span class="w"> </span>-sV<span class="w"> </span><span class="m">10</span>.10.10.161<span class="w"> </span>-oA<span class="w"> </span>forest_full
+</code></pre></div>
+
+<p>Los puertos abiertos (<code>53</code>, <code>88</code>, <code>389</code>, <code>445</code>, <code>3268</code>) apuntan de inmediato
+a un controlador de dominio: DNS, Kerberos, LDAP y SMB juntos son la huella
+clásica de un DC de Active Directory.</p>
+<h3 id="enumeracion-anonima-de-ldap"><a class="toclink" href="#enumeracion-anonima-de-ldap">Enumeración anónima de LDAP</a></h3>
+<p>Muchos controladores de dominio permiten <em>binds</em> anónimos de solo lectura
+por configuración heredada:</p>
+<div class="codehilite"><pre><span></span><code>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-H<span class="w"> </span>ldap://10.10.10.161<span class="w"> </span>-b<span class="w"> </span><span class="s2">&quot;DC=htb,DC=local&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="s2">&quot;(objectClass=user)&quot;</span><span class="w"> </span>sAMAccountName<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>sAMAccountName
+</code></pre></div>
+
+<p>Esto entrega la lista completa de usuarios del dominio sin credenciales,
+suficiente para armar un ataque de <code>AS-REP Roasting</code> contra las cuentas que
+tienen deshabilitada la preautenticación de Kerberos.</p>
+<div class="codehilite"><pre><span></span><code>impacket-GetNPUsers<span class="w"> </span>htb.local/<span class="w"> </span>-usersfile<span class="w"> </span>usuarios.txt<span class="w"> </span>-no-pass<span class="w"> </span>-dc-ip<span class="w"> </span><span class="m">10</span>.10.10.161
+</code></pre></div>
+
+<p>Una de las cuentas devuelve un hash <code>AS-REP</code> crackeable, lo que da el primer
+punto de apoyo dentro del dominio con una cuenta de bajo privilegio.</p>
+<h3 id="del-usuario-inicial-a-un-grupo-con-delegacion"><a class="toclink" href="#del-usuario-inicial-a-un-grupo-con-delegacion">Del usuario inicial a un grupo con delegación</a></h3>
+<p>Con esas credenciales, <code>BloodHound</code> mapea las relaciones del dominio:</p>
+<div class="codehilite"><pre><span></span><code>bloodhound-python<span class="w"> </span>-u<span class="w"> </span>svc_user<span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;********&#39;</span><span class="w"> </span>-d<span class="w"> </span>htb.local<span class="w"> </span>-ns<span class="w"> </span><span class="m">10</span>.10.10.161<span class="w"> </span>-c<span class="w"> </span>All
+</code></pre></div>
+
+<p>El grafo muestra que la cuenta pertenece, de forma indirecta, a
+<code>Exchange Windows Permissions</code>, un grupo que en instalaciones por defecto de
+Exchange termina con <code>WriteDacl</code> sobre el objeto del dominio. Eso permite
+otorgarse a uno mismo derechos de replicación (<code>DS-Replication-Get-Changes</code> y
+<code>DS-Replication-Get-Changes-All</code>).</p>
+<h3 id="escalada-final-dcsync"><a class="toclink" href="#escalada-final-dcsync">Escalada final: DCSync</a></h3>
+<div class="codehilite"><pre><span></span><code>impacket-secretsdump<span class="w"> </span>-just-dc<span class="w"> </span>htb.local/svc_user:<span class="s1">&#39;********&#39;</span>@10.10.10.161
+</code></pre></div>
+
+<p>Con esos dos derechos de replicación otorgados, <code>secretsdump</code> puede simular
+a un controlador de dominio pidiendo una sincronización de contraseñas —
+el mismo mecanismo que usan los DC reales entre sí — y extraer los hashes
+NTLM de todo el dominio, incluido <code>Administrator</code>.</p>
+<h2 id="conclusion"><a class="toclink" href="#conclusion">Conclusión</a></h2>
+<p>La cadena completa —bind anónimo → AS-REP Roasting → pertenencia heredada a
+un grupo con <code>WriteDacl</code> → DCSync— es un recordatorio de que en Active
+Directory casi ningún hallazgo individual es crítico por sí solo. Lo que
+convierte una mala configuración menor en compromiso total del dominio es la
+cadena de relaciones entre objetos, que es exactamente lo que herramientas
+como BloodHound están diseñadas para exponer.</p>
+  </div>
+
+  <footer class="post-footer">
+    <div class="post-footer-tags">
+      <span class="hashtag">#htb</span><span class="hashtag">#active-directory</span><span class="hashtag">#ldap</span><span class="hashtag">#ctf</span>
+    </div>
+    <a class="back-link" href="../index.html">&larr; volver a la bitácora</a>
+  </footer>
+
+</article>
+
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <p class="footer-line">
+      <span class="prompt">root@0xbitacora:~$</span> echo "gracias por leer"
+    </p>
+    <p class="footer-meta">
+      0xBitácora · construido con Python + Jinja2 · © 2026 John
+    </p>
+  </div>
+</footer>
+
+<script src="../static/js/main.js"></script>
+</body>
+</html>

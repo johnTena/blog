@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Antes de tocar un solo endpoint: cómo leo el alcance de un programa de bug bounty — 0xBitácora</title>
+<meta name="description" content="El paso que más gente se salta al empezar en bug bounty no es técnico: es leer la política del programa completa antes de lanzar la primera petición.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2218%22 fill=%22%230F1117%22/><text x=%2250%22 y=%2266%22 font-family=%22monospace%22 font-size=%2254%22 fill=%22%23E8A33D%22 text-anchor=%22middle%22>&gt;_</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../static/css/style.css">
+<link rel="stylesheet" href="../static/css/pygments.css">
+</head>
+<body>
+
+<div class="skip"><a href="#main">Saltar al contenido</a></div>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../index.html">
+      <span class="brand-glyph">&gt;_</span>
+      <span class="brand-text">0xBitácora</span>
+    </a>
+    <nav class="site-nav" aria-label="Navegación principal">
+      <a href="../index.html">inicio</a>
+      <a href="../about.html">acerca</a>
+      <a href="https://github.com/" target="_blank" rel="noopener">contacto</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+
+<article class="post wrap">
+
+  <a class="back-link" href="../index.html">&larr; volver a la bitácora</a>
+
+  <header class="post-header">
+    <span class="tag tag-research">research</span>
+    <h1 class="post-title">Antes de tocar un solo endpoint: cómo leo el alcance de un programa de bug bounty</h1>
+    <p class="post-dek">El paso que más gente se salta al empezar en bug bounty no es técnico: es leer la política del programa completa antes de lanzar la primera petición.</p>
+
+    <dl class="meta-block">
+      <div><dt>fecha</dt><dd>2026-06-28</dd></div>
+      <div><dt>autor</dt><dd>John</dd></div>
+      <div><dt>lectura</dt><dd>2 min</dd></div>
+      <div><dt>tags</dt><dd>#bug-bounty #metodologia #recon</dd></div>
+    </dl>
+  </header>
+
+  
+  <details class="toc">
+    <summary>Índice</summary>
+    <div class="toc">
+<ul>
+<li><a href="#contexto">Contexto</a></li>
+<li><a href="#desarrollo">Desarrollo</a><ul>
+<li><a href="#que-reviso-en-orden">Qué reviso, en orden</a></li>
+<li><a href="#una-nota-sobre-reconocimiento-pasivo-vs-activo">Una nota sobre reconocimiento pasivo vs activo</a></li>
+</ul>
+</li>
+<li><a href="#conclusion">Conclusión</a></li>
+</ul>
+</div>
+
+  </details>
+  
+
+  <div class="post-body">
+    <h2 id="contexto"><a class="toclink" href="#contexto">Contexto</a></h2>
+<p>Es tentador abrir Burp y empezar a mandar tráfico en cuanto entras a un
+programa nuevo. El problema es que "está en el dominio" no es lo mismo que
+"está en el alcance", y esa diferencia es la que separa un reporte válido de
+una violación de política.</p>
+<h2 id="desarrollo"><a class="toclink" href="#desarrollo">Desarrollo</a></h2>
+<h3 id="que-reviso-en-orden"><a class="toclink" href="#que-reviso-en-orden">Qué reviso, en orden</a></h3>
+<ol>
+<li><strong>Assets in-scope vs out-of-scope.</strong> Muchos programas incluyen
+   subdominios de terceros (CDNs, SaaS de soporte, landing pages en
+   plataformas externas) que parecen del dominio principal pero están
+   explícitamente excluidos.</li>
+<li><strong>Tipos de prueba prohibidos.</strong> Casi todos prohíben pruebas de denegación
+   de servicio, ingeniería social contra empleados, y acceso a datos de otros
+   usuarios más allá de una prueba de concepto mínima.</li>
+<li><strong>Cuentas de prueba vs cuentas reales.</strong> Si el programa provee cuentas de
+   prueba, úsalas. Probar contra datos de usuarios reales sin necesidad es la
+   forma más rápida de que te saquen del programa.</li>
+<li><strong>Ventanas de tiempo y rate limits.</strong> Algunos programas piden anunciar
+   pruebas de carga o pentesting activo con anticipación.</li>
+<li><strong>Reglas de divulgación.</strong> Cuánto tiempo hay que esperar antes de publicar
+   un writeup, y si se necesita autorización explícita para hacerlo.</li>
+</ol>
+<h3 id="una-nota-sobre-reconocimiento-pasivo-vs-activo"><a class="toclink" href="#una-nota-sobre-reconocimiento-pasivo-vs-activo">Una nota sobre reconocimiento pasivo vs activo</a></h3>
+<p>Incluso el recon "pasivo" tiene matices. Consultar <code>crt.sh</code> o hacer búsquedas
+en buscadores no toca la infraestructura del objetivo. Pero herramientas de
+enumeración de subdominios que sí generan tráfico activo (fuerza bruta de
+DNS, escaneo de puertos) deben evaluarse contra el alcance igual que
+cualquier otra prueba.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># recon pasivo — no toca la infraestructura del objetivo</span>
+curl<span class="w"> </span>-s<span class="w"> </span><span class="s2">&quot;https://crt.sh/?q=%25.ejemplo.com&amp;output=json&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>-r<span class="w"> </span><span class="s1">&#39;.[].name_value&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span>-u
+</code></pre></div>
+
+<h2 id="conclusion"><a class="toclink" href="#conclusion">Conclusión</a></h2>
+<p>La parte técnica del bug bounty es reemplazable por herramientas y práctica.
+La disciplina de leer el alcance completo, cada vez, sin asumir que se parece
+al del programa anterior, es lo que evita que un hallazgo legítimo se
+convierta en un problema legal.</p>
+  </div>
+
+  <footer class="post-footer">
+    <div class="post-footer-tags">
+      <span class="hashtag">#bug-bounty</span><span class="hashtag">#metodologia</span><span class="hashtag">#recon</span>
+    </div>
+    <a class="back-link" href="../index.html">&larr; volver a la bitácora</a>
+  </footer>
+
+</article>
+
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <p class="footer-line">
+      <span class="prompt">root@0xbitacora:~$</span> echo "gracias por leer"
+    </p>
+    <p class="footer-meta">
+      0xBitácora · construido con Python + Jinja2 · © 2026 John
+    </p>
+  </div>
+</footer>
+
+<script src="../static/js/main.js"></script>
+</body>
+</html>

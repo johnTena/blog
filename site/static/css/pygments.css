@@ -1,0 +1,20 @@
+/* Resaltado de sintaxis — paleta propia del sitio (no monokai por defecto) */
+.codehilite{ background:transparent; }
+.codehilite .hll{ background-color:#22283a; }
+.codehilite .c,  .codehilite .c1, .codehilite .cm{ color:#565E75; font-style:italic; } /* comentarios */
+.codehilite .err{ color:#E5484D; }
+.codehilite .k,  .codehilite .kn, .codehilite .kd, .codehilite .kc{ color:#E8A33D; }    /* keywords */
+.codehilite .o,  .codehilite .ow{ color:#8891A8; }                                     /* operadores */
+.codehilite .p{ color:#D6D9E4; }                                                       /* puntuación */
+.codehilite .s,  .codehilite .s1, .codehilite .s2, .codehilite .sb{ color:#4FB286; }    /* strings */
+.codehilite .n{ color:#D6D9E4; }
+.codehilite .na, .codehilite .nb{ color:#6FC3D9; }                                     /* nombres/builtins */
+.codehilite .nc{ color:#9C8CF0; }                                                      /* clases */
+.codehilite .nf{ color:#6FC3D9; }                                                      /* funciones */
+.codehilite .nt{ color:#E8A33D; }                                                      /* tags */
+.codehilite .nv, .codehilite .vm{ color:#D6D9E4; }
+.codehilite .m,  .codehilite .mi, .codehilite .mf{ color:#9C8CF0; }                    /* números */
+.codehilite .gp{ color:#4FB286; font-weight:600; }                                     /* prompt $ */
+.codehilite .go{ color:#8891A8; }                                                      /* salida */
+.codehilite .gh{ color:#E8A33D; }
+.codehilite .w{ color:#565E75; }

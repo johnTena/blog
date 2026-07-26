@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NO_PROPOSAL_CHOSEN: cazando el mismatch de propuestas IKE en strongSwan — 0xBitácora</title>
+<meta name="description" content="Diagnóstico paso a paso de un túnel site-to-site que muere en IKE_SA_INIT, y el checklist que uso para no volver a perder una tarde con esto.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2218%22 fill=%22%230F1117%22/><text x=%2250%22 y=%2266%22 font-family=%22monospace%22 font-size=%2254%22 fill=%22%23E8A33D%22 text-anchor=%22middle%22>&gt;_</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../static/css/style.css">
+<link rel="stylesheet" href="../static/css/pygments.css">
+</head>
+<body>
+
+<div class="skip"><a href="#main">Saltar al contenido</a></div>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../index.html">
+      <span class="brand-glyph">&gt;_</span>
+      <span class="brand-text">0xBitácora</span>
+    </a>
+    <nav class="site-nav" aria-label="Navegación principal">
+      <a href="../index.html">inicio</a>
+      <a href="../about.html">acerca</a>
+      <a href="https://github.com/" target="_blank" rel="noopener">contacto</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+
+<article class="post wrap">
+
+  <a class="back-link" href="../index.html">&larr; volver a la bitácora</a>
+
+  <header class="post-header">
+    <span class="tag tag-writeup">writeup</span>
+    <h1 class="post-title">NO_PROPOSAL_CHOSEN: cazando el mismatch de propuestas IKE en strongSwan</h1>
+    <p class="post-dek">Diagnóstico paso a paso de un túnel site-to-site que muere en IKE_SA_INIT, y el checklist que uso para no volver a perder una tarde con esto.</p>
+
+    <dl class="meta-block">
+      <div><dt>fecha</dt><dd>2026-07-18</dd></div>
+      <div><dt>autor</dt><dd>John</dd></div>
+      <div><dt>lectura</dt><dd>2 min</dd></div>
+      <div><dt>tags</dt><dd>#ipsec #strongswan #vpn #networking</dd></div>
+    </dl>
+  </header>
+
+  
+  <details class="toc">
+    <summary>Índice</summary>
+    <div class="toc">
+<ul>
+<li><a href="#contexto">Contexto</a></li>
+<li><a href="#desarrollo">Desarrollo</a><ul>
+<li><a href="#1-confirmar-que-el-fallo-es-de-fase-1-no-de-fase-2">1. Confirmar que el fallo es de fase 1, no de fase 2</a></li>
+<li><a href="#2-revisar-la-propuesta-que-realmente-se-esta-enviando">2. Revisar la propuesta que realmente se está enviando</a></li>
+<li><a href="#3-ampliar-la-propuesta-en-vez-de-adivinar">3. Ampliar la propuesta en vez de adivinar</a></li>
+<li><a href="#4-si-sigue-fallando-probar-ikev1">4. Si sigue fallando, probar IKEv1</a></li>
+</ul>
+</li>
+<li><a href="#conclusion">Conclusión</a></li>
+</ul>
+</div>
+
+  </details>
+  
+
+  <div class="post-body">
+    <h2 id="contexto"><a class="toclink" href="#contexto">Contexto</a></h2>
+<p>Un túnel <code>IKEv2</code> entre mi gateway y un peer remoto se quedaba pegado en <code>CONNECTING</code>.
+Los paquetes de <code>IKE_SA_INIT</code> salían, pero el peer respondía con un rechazo limpio:</p>
+<div class="codehilite"><pre><span></span><code>charon: 08[IKE] received NO_PROPOSAL_CHOSEN notify error
+charon: 08[IKE] establishing IKE_SA failed, peer not authenticated
+</code></pre></div>
+
+<p><code>NO_PROPOSAL_CHOSEN</code> casi siempre significa lo mismo: <strong>ambos lados están vivos y
+se están hablando</strong>, pero ninguna combinación de cifrado/hash/grupo DH que ofrece
+un lado coincide con lo que el otro lado acepta. No es un problema de firewall
+(eso daría timeout, no un notify), y no es un problema de PSK (eso falla más
+adelante, en <code>IKE_AUTH</code>).</p>
+<h2 id="desarrollo"><a class="toclink" href="#desarrollo">Desarrollo</a></h2>
+<h3 id="1-confirmar-que-el-fallo-es-de-fase-1-no-de-fase-2"><a class="toclink" href="#1-confirmar-que-el-fallo-es-de-fase-1-no-de-fase-2">1. Confirmar que el fallo es de fase 1, no de fase 2</a></h3>
+<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>journalctl<span class="w"> </span>-u<span class="w"> </span>strongswan<span class="w"> </span>-f<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">&quot;IKE_SA_INIT|NO_PROPOSAL|AUTH&quot;</span>
+</code></pre></div>
+
+<p>Si el log muere justo después de <code>generating IKE_SA_INIT request</code>, el problema
+vive en la sección <code>ike=</code> de la conexión, no en <code>esp=</code>.</p>
+<h3 id="2-revisar-la-propuesta-que-realmente-se-esta-enviando"><a class="toclink" href="#2-revisar-la-propuesta-que-realmente-se-esta-enviando">2. Revisar la propuesta que realmente se está enviando</a></h3>
+<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>swanctl<span class="w"> </span>--log<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-A3<span class="w"> </span><span class="s2">&quot;sending proposals&quot;</span>
+</code></pre></div>
+
+<p>Compara contra lo que documentación o equipo remoto declaran soportar. Un caso
+típico: yo tenía <code>ike=aes256-sha256-modp2048!</code> pero el otro extremo era un
+equipo legado que solo aceptaba <code>sha1</code> en fase 1.</p>
+<h3 id="3-ampliar-la-propuesta-en-vez-de-adivinar"><a class="toclink" href="#3-ampliar-la-propuesta-en-vez-de-adivinar">3. Ampliar la propuesta en vez de adivinar</a></h3>
+<p>En lugar de adivinar una sola combinación, listo varias con <code>,</code> y dejo que
+strongSwan negocie:</p>
+<div class="codehilite"><pre><span></span><code>conn cliente-pdv
+    keyexchange=ikev2
+    left=%defaultroute
+    leftid=203.0.113.10
+    right=198.51.100.20
+    ike=aes256-sha256-modp2048,aes256-sha1-modp2048,aes128-sha1-modp1024!
+    esp=aes256-sha256,aes256-sha1!
+    authby=psk
+    forceencaps=yes
+    keyingtries=%forever
+    dpdaction=restart
+    closeaction=restart
+</code></pre></div>
+
+<p>El <code>!</code> al final de cada línea es importante: le dice a strongSwan que <strong>no</strong>
+proponga combinaciones fuera de esa lista aunque tenga otras disponibles por
+defecto, lo cual ayuda a que el log de negociación sea legible.</p>
+<h3 id="4-si-sigue-fallando-probar-ikev1"><a class="toclink" href="#4-si-sigue-fallando-probar-ikev1">4. Si sigue fallando, probar IKEv1</a></h3>
+<p>Algunos equipos (sobre todo appliances más viejos) no implementan bien
+IKEv2. Cambiar <code>keyexchange=ikev2</code> por <code>keyexchange=ikev1</code> y, si aplica,
+<code>aggressive=yes</code>, resuelve una fracción sorprendente de estos casos.</p>
+<h2 id="conclusion"><a class="toclink" href="#conclusion">Conclusión</a></h2>
+<p><code>NO_PROPOSAL_CHOSEN</code> es información, no un error genérico: te está diciendo
+que la sesión sí se estableció a nivel de red y que el problema es
+puramente de configuración criptográfica. El checklist que me ahorra tiempo:</p>
+<ol>
+<li>Confirmar en qué fase muere (<code>IKE_SA_INIT</code> vs <code>IKE_AUTH</code>).</li>
+<li>Loggear la propuesta real enviada, no la que crees que enviaste.</li>
+<li>Ampliar la lista de cifrados antes de asumir que el peer está mal configurado.</li>
+<li>IKEv1 como último recurso para equipos legados.</li>
+</ol>
+  </div>
+
+  <footer class="post-footer">
+    <div class="post-footer-tags">
+      <span class="hashtag">#ipsec</span><span class="hashtag">#strongswan</span><span class="hashtag">#vpn</span><span class="hashtag">#networking</span>
+    </div>
+    <a class="back-link" href="../index.html">&larr; volver a la bitácora</a>
+  </footer>
+
+</article>
+
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <p class="footer-line">
+      <span class="prompt">root@0xbitacora:~$</span> echo "gracias por leer"
+    </p>
+    <p class="footer-meta">
+      0xBitácora · construido con Python + Jinja2 · © 2026 John
+    </p>
+  </div>
+</footer>
+
+<script src="../static/js/main.js"></script>
+</body>
+</html>

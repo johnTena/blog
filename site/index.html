@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>0xBitácora — 0xBitácora</title>
+<meta name="description" content="Writeups de CTF, notas de bug bounty e infraestructura, y herramientas de seguridad ofensiva.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2218%22 fill=%22%230F1117%22/><text x=%2250%22 y=%2266%22 font-family=%22monospace%22 font-size=%2254%22 fill=%22%23E8A33D%22 text-anchor=%22middle%22>&gt;_</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="static/css/style.css">
+<link rel="stylesheet" href="static/css/pygments.css">
+</head>
+<body>
+
+<div class="skip"><a href="#main">Saltar al contenido</a></div>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="index.html">
+      <span class="brand-glyph">&gt;_</span>
+      <span class="brand-text">0xBitácora</span>
+    </a>
+    <nav class="site-nav" aria-label="Navegación principal">
+      <a href="index.html">inicio</a>
+      <a href="about.html">acerca</a>
+      <a href="https://github.com/" target="_blank" rel="noopener">contacto</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+
+<section class="hero wrap">
+  <p class="hero-kicker">bitácora personal</p>
+  <h1 class="hero-title">
+    <span class="typed-line" data-text="whoami">whoami</span>
+  </h1>
+  <p class="hero-sub">Notas de campo sobre infraestructura, redes y seguridad ofensiva — CTF, bug bounty y las herramientas que uso en el camino.</p>
+  <div class="hero-tags">
+    <span class="chip">ctf</span><span class="chip">bug bounty</span><span class="chip">redes & vpn</span><span class="chip">automatización</span><span class="chip">cloud</span>
+  </div>
+</section>
+
+<section class="log-stream wrap" aria-label="Listado de publicaciones">
+  <div class="log-head">
+    <span class="prompt">root@0xbitacora:~$</span> tail -f bitacora.log
+    <span class="log-count">6 entradas</span>
+  </div>
+
+  <ol class="log-list">
+    
+    <li class="log-entry">
+      <a class="log-link" href="posts/htb-blue-eternalblue.html">
+        <span class="log-time">[2026-07-25]</span>
+        <span class="tag tag-writeup">writeup</span>
+        <span class="log-title">HTB Blue: explotando MS17-010 (EternalBlue) paso a paso</span>
+        <span class="log-arrow" aria-hidden="true">→</span>
+      </a>
+      <p class="log-summary">Writeup de la máquina Blue de HackTheBox: de un escaneo de puertos a shell de SYSTEM explotando la vulnerabilidad MS17-010 en SMBv1.</p>
+      <div class="log-tags">
+        <span class="hashtag">#htb</span><span class="hashtag">#eternalblue</span><span class="hashtag">#smb</span><span class="hashtag">#ctf</span><span class="hashtag">#windows</span>
+        <span class="log-readtime">· 2 min de lectura</span>
+      </div>
+    </li>
+    
+    <li class="log-entry">
+      <a class="log-link" href="posts/nuclei-escaneo-basado-en-templates.html">
+        <span class="log-time">[2026-07-23]</span>
+        <span class="tag tag-tool">tool</span>
+        <span class="log-title">Nuclei en la práctica: escaneo de vulnerabilidades basado en templates</span>
+        <span class="log-arrow" aria-hidden="true">→</span>
+      </a>
+      <p class="log-summary">Cómo integro Nuclei en mi flujo de reconocimiento para bug bounty: instalación, templates, y un patrón de uso que evita ruido innecesario contra el objetivo.</p>
+      <div class="log-tags">
+        <span class="hashtag">#nuclei</span><span class="hashtag">#recon</span><span class="hashtag">#bug-bounty</span><span class="hashtag">#automatizacion</span>
+        <span class="log-readtime">· 2 min de lectura</span>
+      </div>
+    </li>
+    
+    <li class="log-entry">
+      <a class="log-link" href="posts/flipper-zero-datos-y-modo-de-uso.html">
+        <span class="log-time">[2026-07-21]</span>
+        <span class="tag tag-nota">nota</span>
+        <span class="log-title">Flipper Zero: qué es realmente y para qué lo uso</span>
+        <span class="log-arrow" aria-hidden="true">→</span>
+      </a>
+      <p class="log-summary">Datos curiosos y casos de uso reales del Flipper Zero, más allá del hype de redes sociales: qué protocolos lee, qué no puede hacer, y cómo lo integro en pruebas autorizadas.</p>
+      <div class="log-tags">
+        <span class="hashtag">#flipper-zero</span><span class="hashtag">#rf</span><span class="hashtag">#nfc</span><span class="hashtag">#hardware</span>
+        <span class="log-readtime">· 3 min de lectura</span>
+      </div>
+    </li>
+    
+    <li class="log-entry">
+      <a class="log-link" href="posts/no-proposal-chosen-strongswan.html">
+        <span class="log-time">[2026-07-18]</span>
+        <span class="tag tag-writeup">writeup</span>
+        <span class="log-title">NO_PROPOSAL_CHOSEN: cazando el mismatch de propuestas IKE en strongSwan</span>
+        <span class="log-arrow" aria-hidden="true">→</span>
+      </a>
+      <p class="log-summary">Diagnóstico paso a paso de un túnel site-to-site que muere en IKE_SA_INIT, y el checklist que uso para no volver a perder una tarde con esto.</p>
+      <div class="log-tags">
+        <span class="hashtag">#ipsec</span><span class="hashtag">#strongswan</span><span class="hashtag">#vpn</span><span class="hashtag">#networking</span>
+        <span class="log-readtime">· 2 min de lectura</span>
+      </div>
+    </li>
+    
+    <li class="log-entry">
+      <a class="log-link" href="posts/bug-bounty-alcance.html">
+        <span class="log-time">[2026-06-28]</span>
+        <span class="tag tag-research">research</span>
+        <span class="log-title">Antes de tocar un solo endpoint: cómo leo el alcance de un programa de bug bounty</span>
+        <span class="log-arrow" aria-hidden="true">→</span>
+      </a>
+      <p class="log-summary">El paso que más gente se salta al empezar en bug bounty no es técnico: es leer la política del programa completa antes de lanzar la primera petición.</p>
+      <div class="log-tags">
+        <span class="hashtag">#bug-bounty</span><span class="hashtag">#metodologia</span><span class="hashtag">#recon</span>
+        <span class="log-readtime">· 2 min de lectura</span>
+      </div>
+    </li>
+    
+    <li class="log-entry">
+      <a class="log-link" href="posts/htb-forest-ldap-domain-admin.html">
+        <span class="log-time">[2026-06-15]</span>
+        <span class="tag tag-writeup">writeup</span>
+        <span class="log-title">HTB Forest: de enumeración LDAP anónima a Domain Admin</span>
+        <span class="log-arrow" aria-hidden="true">→</span>
+      </a>
+      <p class="log-summary">Writeup de la máquina Forest de HackTheBox: enumeración anónima de LDAP, abuso de un grupo delegado y escalada final vía DCSync.</p>
+      <div class="log-tags">
+        <span class="hashtag">#htb</span><span class="hashtag">#active-directory</span><span class="hashtag">#ldap</span><span class="hashtag">#ctf</span>
+        <span class="log-readtime">· 2 min de lectura</span>
+      </div>
+    </li>
+    
+  </ol>
+</section>
+
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <p class="footer-line">
+      <span class="prompt">root@0xbitacora:~$</span> echo "gracias por leer"
+    </p>
+    <p class="footer-meta">
+      0xBitácora · construido con Python + Jinja2 · © 2026 John
+    </p>
+  </div>
+</footer>
+
+<script src="static/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="hero wrap">
+  <p class="hero-kicker">bitácora personal</p>
+  <h1 class="hero-title">
+    <span class="typed-line" data-text="whoami">whoami</span>
+  </h1>
+  <p class="hero-sub">{{ site.tagline }}</p>
+  <div class="hero-tags">
+    {% for t in site.focus_areas %}<span class="chip">{{ t }}</span>{% endfor %}
+  </div>
+</section>
+
+<section class="log-stream wrap" aria-label="Listado de publicaciones">
+  <div class="log-head">
+    <span class="prompt">root@{{ site.handle }}:~$</span> tail -f bitacora.log
+    <span class="log-count">{{ posts|length }} entradas</span>
+  </div>
+
+  <ol class="log-list">
+    {% for post in posts %}
+    <li class="log-entry">
+      <a class="log-link" href="{{ base_url }}posts/{{ post.slug }}.html">
+        <span class="log-time">[{{ post.date }}]</span>
+        <span class="tag tag-{{ post.category_slug }}">{{ post.category }}</span>
+        <span class="log-title">{{ post.title }}</span>
+        <span class="log-arrow" aria-hidden="true">→</span>
+      </a>
+      <p class="log-summary">{{ post.summary }}</p>
+      <div class="log-tags">
+        {% for tag in post.tags %}<span class="hashtag">#{{ tag }}</span>{% endfor %}
+        <span class="log-readtime">· {{ post.read_time }} min de lectura</span>
+      </div>
+    </li>
+    {% endfor %}
+  </ol>
+</section>
+
+{% endblock %}

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flipper Zero: qué es realmente y para qué lo uso — 0xBitácora</title>
+<meta name="description" content="Datos curiosos y casos de uso reales del Flipper Zero, más allá del hype de redes sociales: qué protocolos lee, qué no puede hacer, y cómo lo integro en pruebas autorizadas.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2218%22 fill=%22%230F1117%22/><text x=%2250%22 y=%2266%22 font-family=%22monospace%22 font-size=%2254%22 fill=%22%23E8A33D%22 text-anchor=%22middle%22>&gt;_</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../static/css/style.css">
+<link rel="stylesheet" href="../static/css/pygments.css">
+</head>
+<body>
+
+<div class="skip"><a href="#main">Saltar al contenido</a></div>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="../index.html">
+      <span class="brand-glyph">&gt;_</span>
+      <span class="brand-text">0xBitácora</span>
+    </a>
+    <nav class="site-nav" aria-label="Navegación principal">
+      <a href="../index.html">inicio</a>
+      <a href="../about.html">acerca</a>
+      <a href="https://github.com/" target="_blank" rel="noopener">contacto</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+
+<article class="post wrap">
+
+  <a class="back-link" href="../index.html">&larr; volver a la bitácora</a>
+
+  <header class="post-header">
+    <span class="tag tag-nota">nota</span>
+    <h1 class="post-title">Flipper Zero: qué es realmente y para qué lo uso</h1>
+    <p class="post-dek">Datos curiosos y casos de uso reales del Flipper Zero, más allá del hype de redes sociales: qué protocolos lee, qué no puede hacer, y cómo lo integro en pruebas autorizadas.</p>
+
+    <dl class="meta-block">
+      <div><dt>fecha</dt><dd>2026-07-21</dd></div>
+      <div><dt>autor</dt><dd>John</dd></div>
+      <div><dt>lectura</dt><dd>3 min</dd></div>
+      <div><dt>tags</dt><dd>#flipper-zero #rf #nfc #hardware</dd></div>
+    </dl>
+  </header>
+
+  
+  <details class="toc">
+    <summary>Índice</summary>
+    <div class="toc">
+<ul>
+<li><a href="#contexto">Contexto</a></li>
+<li><a href="#datos-curiosos">Datos curiosos</a></li>
+<li><a href="#modo-de-uso-casos-donde-realmente-aporta">Modo de uso — casos donde realmente aporta</a><ul>
+<li><a href="#auditar-tus-propios-controles-de-acceso">Auditar tus propios controles de acceso</a></li>
+<li><a href="#analizar-el-propio-mando-del-garage">Analizar el propio mando del garage</a></li>
+<li><a href="#depurar-protocolos-ir-en-desarrollo-de-iot">Depurar protocolos IR en desarrollo de IoT</a></li>
+<li><a href="#lo-que-no-hace-y-por-que-importa-saberlo">Lo que NO hace (y por qué importa saberlo)</a></li>
+</ul>
+</li>
+<li><a href="#conclusion">Conclusión</a></li>
+</ul>
+</div>
+
+  </details>
+  
+
+  <div class="post-body">
+    <h2 id="contexto"><a class="toclink" href="#contexto">Contexto</a></h2>
+<p>El Flipper Zero se hizo viral como "la navaja suiza del hacker", pero buena
+parte de lo que circula en redes exagera sus capacidades reales. Es, en el
+fondo, una plataforma de pruebas de radiofrecuencia y protocolos
+inalámbricos de corto alcance con una interfaz muy accesible — no es un
+dispositivo mágico que "hackea" cualquier cosa con solo apuntarlo.</p>
+<h2 id="datos-curiosos"><a class="toclink" href="#datos-curiosos">Datos curiosos</a></h2>
+<ul>
+<li><strong>El nombre viene de un delfín.</strong> El "Flipper" de la mascota (un delfín
+  ciberpunk) referencia la idea de un compañero curioso y juguetón — de ahí
+  el tono desenfadado de toda la interfaz, muy distinto al de una
+  herramienta de pentest tradicional.</li>
+<li><strong>Corre un firmware abierto.</strong> El firmware oficial es de código abierto,
+  lo que dio pie a forks de la comunidad (como Unleashed o RogueMaster) que
+  añaden funciones o remueven límites regulatorios — algo a tener en cuenta,
+  porque cambia qué frecuencias transmite y con qué restricciones legales.</li>
+<li><strong>No clona todo.</strong> Tarjetas NFC/RFID modernas con cifrado (como la mayoría
+  de tarjetas bancarias o pasaportes con chip) no se clonan con un Flipper:
+  el dispositivo lee y muestra los datos, pero no rompe el cifrado
+  subyacente. Lo que sí puede leer y a veces reproducir son sistemas más
+  antiguos o mal configurados (EM4100, Mifare Classic con claves por
+  defecto, mandos de garage sin rolling code).</li>
+<li><strong>El chip Sub-GHz es el corazón real del dispositivo.</strong> Más que el NFC, la
+  capacidad de capturar y analizar señales en 300-928 MHz (mandos de
+  cocheras, sensores IoT, algunos controles remotos) es donde más se nota la
+  diferencia frente a un teléfono normal.</li>
+</ul>
+<h2 id="modo-de-uso-casos-donde-realmente-aporta"><a class="toclink" href="#modo-de-uso-casos-donde-realmente-aporta">Modo de uso — casos donde realmente aporta</a></h2>
+<h3 id="auditar-tus-propios-controles-de-acceso"><a class="toclink" href="#auditar-tus-propios-controles-de-acceso">Auditar tus propios controles de acceso</a></h3>
+<div class="codehilite"><pre><span></span><code>Menú → 125 kHz RFID → Leer
+</code></pre></div>
+
+<p>Leer una credencial propia de acceso (una pulsera de gimnasio, una tarjeta
+de oficina que administras) para verificar si usa un esquema vulnerable
+(EM4100 sin cifrado) es el caso de uso más directo: te dice si tu propio
+control de acceso es tan seguro como crees.</p>
+<h3 id="analizar-el-propio-mando-del-garage"><a class="toclink" href="#analizar-el-propio-mando-del-garage">Analizar el propio mando del garage</a></h3>
+<div class="codehilite"><pre><span></span><code>Menú → Sub-GHz → Leer → (accionar el mando propio)
+</code></pre></div>
+
+<p>Si el mando no implementa <code>rolling code</code> (código que cambia en cada uso),
+el Flipper captura una señal fija y puede reproducirla. Es una forma
+práctica de descubrir, sobre tu propio equipo, si vale la pena actualizarlo
+a un receptor más moderno.</p>
+<h3 id="depurar-protocolos-ir-en-desarrollo-de-iot"><a class="toclink" href="#depurar-protocolos-ir-en-desarrollo-de-iot">Depurar protocolos IR en desarrollo de IoT</a></h3>
+<div class="codehilite"><pre><span></span><code>Menú → Infrared → Aprender señal
+</code></pre></div>
+
+<p>Para quien desarrolla o da soporte a hardware con control remoto IR, capturar
+y reproducir señales acelera muchísimo la depuración comparado con probar
+mando por mando.</p>
+<h3 id="lo-que-no-hace-y-por-que-importa-saberlo"><a class="toclink" href="#lo-que-no-hace-y-por-que-importa-saberlo">Lo que NO hace (y por qué importa saberlo)</a></h3>
+<ul>
+<li>No clona tarjetas bancarias ni pasaportes (cifradas y con protecciones
+  anti-clonado).</li>
+<li>No "hackea" WiFi por sí solo — necesita un módulo adicional (como el
+  DevBoard con ESP32) que ni siquiera viene incluido de fábrica.</li>
+<li>No transmite legalmente en cualquier frecuencia en cualquier país: las
+  bandas Sub-GHz permitidas varían por región, y el firmware oficial
+  respeta esas restricciones regionales por defecto.</li>
+</ul>
+<h2 id="conclusion"><a class="toclink" href="#conclusion">Conclusión</a></h2>
+<p>El valor real del Flipper Zero está en hacer accesible algo que antes
+requería SDRs, lectores RFID dedicados y bastante conocimiento de
+radiofrecuencia por separado — todo en una interfaz que cabe en un bolsillo.
+Pero como con cualquier herramienta de este tipo, su uso legítimo se limita
+a equipos propios o pruebas explícitamente autorizadas: leer o reproducir
+credenciales, mandos o tarjetas de terceros sin permiso es ilegal
+independientemente de qué tan trivial lo haga el dispositivo.</p>
+  </div>
+
+  <footer class="post-footer">
+    <div class="post-footer-tags">
+      <span class="hashtag">#flipper-zero</span><span class="hashtag">#rf</span><span class="hashtag">#nfc</span><span class="hashtag">#hardware</span>
+    </div>
+    <a class="back-link" href="../index.html">&larr; volver a la bitácora</a>
+  </footer>
+
+</article>
+
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <p class="footer-line">
+      <span class="prompt">root@0xbitacora:~$</span> echo "gracias por leer"
+    </p>
+    <p class="footer-meta">
+      0xBitácora · construido con Python + Jinja2 · © 2026 John
+    </p>
+  </div>
+</footer>
+
+<script src="../static/js/main.js"></script>
+</body>
+</html>
